@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
-import QRCode from 'qrcode.react'
+import { QRCodeCanvas } from 'qrcode.react'
 
 export default function Home() {
   const previewRef = useRef(null)

@@ -198,7 +198,7 @@ export default function Home() {
 
         <div className="flex-1 bg-white border rounded p-4 overflow-auto">
           <div ref={previewRef} dangerouslySetInnerHTML={{ __html: getTemplateHTML() }} />
-          <div className="flex flex-col items-center gap-3 mt-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 mt-6 place-items-center">
             <button onClick={copyToClipboard} className="px-3 py-2 bg-black text-white rounded hover:bg-gray-800 transition">Copy HTML</button>
             <button onClick={downloadHTML} className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Download HTML</button>
             <button onClick={downloadPNG} className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Download PNG</button>

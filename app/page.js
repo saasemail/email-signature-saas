@@ -7,6 +7,7 @@ import QRCode from 'qrcode'
 export default function Home() {
   const previewRef = useRef(null)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
+  const [htmlKey, setHtmlKey] = useState(0) // 👈 dodato za re-render prikaza
 
   const [form, setForm] = useState({
     fullName: '',
@@ -31,9 +32,13 @@ export default function Home() {
     }
   }, [form.website])
 
+  useEffect(() => {
+    setHtmlKey(prev => prev + 1) // 👈 kada god forma menja vrednosti, re-renderuj HTML
+  }, [form])
+
   const handleChange = (e) => {
     const { name, value } = e.target
-    setForm({ ...form, [name]: value })
+    setForm(prev => ({ ...prev, [name]: value }))
   }
 
   const handleImageUpload = (e) => {
@@ -41,15 +46,18 @@ export default function Home() {
     if (!file) return
     const reader = new FileReader()
     reader.onloadend = () => {
-      setForm({ ...form, image: file, imageBase64: reader.result })
+      setForm(prev => ({ ...prev, image: file, imageBase64: reader.result }))
     }
     reader.readAsDataURL(file)
   }
 
+  const removeImage = () => {
+    setForm(prev => ({ ...prev, image: null, imageBase64: '' }))
+  }
+
   const getTemplateHTML = () => {
     const { fullName, jobTitle, company, phone, website, color, bgColor, imageBase64, template } = form
-
-    const footer = '' // Uklonjen watermark ovde
+    const footer = ''
 
     if (template === 'modern') {
       return `
@@ -170,8 +178,12 @@ export default function Home() {
               Choose File
               <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
             </label>
+
             {form.imageBase64 && (
-              <img src={form.imageBase64} alt="preview" className="mt-2 h-20 rounded border" />
+              <div className="relative inline-block mt-2">
+                <img src={form.imageBase64} alt="preview" className="h-20 rounded border" />
+                <button onClick={removeImage} className="absolute top-0 right-0 bg-red-500 text-white text-xs px-1 rounded-full hover:bg-red-600">✕</button>
+              </div>
             )}
           </div>
 
@@ -195,7 +207,7 @@ export default function Home() {
         </div>
 
         <div className="flex-1 bg-white border rounded p-4 flex flex-col justify-between" style={{ height: '420px' }}>
-          <div ref={previewRef} dangerouslySetInnerHTML={{ __html: getTemplateHTML() }} className="flex-1 overflow-auto" />
+          <div key={htmlKey} ref={previewRef} dangerouslySetInnerHTML={{ __html: getTemplateHTML() }} className="flex-1 overflow-auto" />
           <div className="flex justify-between items-center flex-wrap gap-2 mt-4 pt-4 border-t">
             <button onClick={copyToClipboard} className="px-3 py-2 bg-black text-white rounded hover:bg-gray-800 transition">Copy HTML</button>
             <button onClick={downloadHTML} className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Download HTML</button>

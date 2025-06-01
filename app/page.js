@@ -7,7 +7,6 @@ import QRCode from 'qrcode'
 export default function Home() {
   const previewRef = useRef(null)
   const [qrCodeUrl, setQrCodeUrl] = useState('')
-  const [htmlKey, setHtmlKey] = useState(0) // 👈 dodato za re-render prikaza
 
   const [form, setForm] = useState({
     fullName: '',
@@ -32,10 +31,6 @@ export default function Home() {
     }
   }, [form.website])
 
-  useEffect(() => {
-    setHtmlKey(prev => prev + 1) // 👈 kada god forma menja vrednosti, re-renderuj HTML
-  }, [form])
-
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
@@ -55,53 +50,64 @@ export default function Home() {
     setForm(prev => ({ ...prev, image: null, imageBase64: '' }))
   }
 
-  const getTemplateHTML = () => {
+  const SignaturePreview = () => {
     const { fullName, jobTitle, company, phone, website, color, bgColor, imageBase64, template } = form
-    const footer = ''
+    const commonStyles = { backgroundColor: bgColor, color: color, padding: '16px', borderRadius: '8px' }
 
     if (template === 'modern') {
-      return `
-        <div style="font-family:sans-serif; background:${bgColor}; color:${color}; padding:16px; border-left:4px solid ${color};">
-          <div style="display:flex; align-items:center; gap:12px;">
-            ${imageBase64 ? `<img src="${imageBase64}" width="60" style="border-radius:8px;" />` : ''}
+      return (
+        <div style={{ ...commonStyles, fontFamily: 'sans-serif', borderLeft: `4px solid ${color}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {imageBase64 && <img src={imageBase64} width="60" style={{ borderRadius: '8px' }} alt="avatar" />}
             <div>
-              ${fullName ? `<div style="font-size:18px; font-weight:bold;">${fullName}</div>` : ''}
-              ${jobTitle || company ? `<div>${jobTitle}${jobTitle && company ? ' @ ' : ''}${company}</div>` : ''}
-              ${phone ? `<div>📞 ${phone}</div>` : ''}
-              ${website ? `<div>🌐 <a href="${website}" target="_blank" rel="noopener noreferrer" style="color:${color};">${website}</a></div>` : ''}
+              {fullName && <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{fullName}</div>}
+              {(jobTitle || company) && <div>{jobTitle}{jobTitle && company ? ' @ ' : ''}{company}</div>}
+              {phone && <div>📞 {phone}</div>}
+              {website && <div>🌐 <a href={website} target="_blank" rel="noopener noreferrer" style={{ color }}>{website}</a></div>}
             </div>
           </div>
-          ${footer}
         </div>
-      `
+      )
     }
 
     if (template === 'bold') {
-      return `
-        <div style="font-family:Arial Black; background:${bgColor}; color:${color}; padding:20px; text-transform:uppercase;">
-          ${imageBase64 ? `<img src="${imageBase64}" width="100" style="margin-bottom:10px;" />` : ''}
-          ${fullName ? `<div style="font-size:20px;">${fullName}</div>` : ''}
-          ${jobTitle || company ? `<div style="margin:4px 0;">${jobTitle}${jobTitle && company ? ' - ' : ''}${company}</div>` : ''}
-          ${(phone || website) ? `<div>${phone ? phone : ''}${phone && website ? ' • ' : ''}${website ? `<a href="${website}" target="_blank" rel="noopener noreferrer" style="color:${color};">${website}</a>` : ''}</div>` : ''}
-          ${footer}
+      return (
+        <div style={{ ...commonStyles, fontFamily: 'Arial Black', padding: '20px', textTransform: 'uppercase' }}>
+          {imageBase64 && <img src={imageBase64} width="100" style={{ marginBottom: '10px' }} alt="avatar" />}
+          {fullName && <div style={{ fontSize: '20px' }}>{fullName}</div>}
+          {(jobTitle || company) && <div style={{ margin: '4px 0' }}>{jobTitle}{jobTitle && company ? ' - ' : ''}{company}</div>}
+          {(phone || website) && (
+            <div>
+              {phone}
+              {phone && website ? ' • ' : ''}
+              {website && <a href={website} target="_blank" rel="noopener noreferrer" style={{ color }}>{website}</a>}
+            </div>
+          )}
         </div>
-      `
+      )
     }
 
-    return `
-      <table style="font-family:Arial; font-size:14px; background:${bgColor}; color:${color}; padding:10px;">
-        <tr>
-          ${imageBase64 ? `<td style="padding-right:10px;"><img src="${imageBase64}" width="80" style="border-radius:6px;" /></td>` : ''}
-          <td>
-            ${fullName ? `<strong>${fullName}</strong><br/>` : ''}
-            ${jobTitle || company ? `${jobTitle}${jobTitle && company ? ' at ' : ''}${company}<br/>` : ''}
-            ${phone ? `📞 ${phone}<br/>` : ''}
-            ${website ? `🌐 <a href="${website}" target="_blank" rel="noopener noreferrer" style="color:${color};">${website}</a><br/>` : ''}
-            ${footer}
-          </td>
-        </tr>
+    return (
+      <table style={{ ...commonStyles, fontFamily: 'Arial', fontSize: '14px', padding: '10px' }}>
+        <tbody>
+          <tr>
+            {imageBase64 && <td style={{ paddingRight: '10px' }}><img src={imageBase64} width="80" style={{ borderRadius: '6px' }} alt="avatar" /></td>}
+            <td>
+              {fullName && <strong>{fullName}</strong>}<br />
+              {(jobTitle || company) && <>{jobTitle}{jobTitle && company ? ' at ' : ''}{company}<br /></>}
+              {phone && <>📞 {phone}<br /></>}
+              {website && <>🌐 <a href={website} target="_blank" rel="noopener noreferrer" style={{ color }}>{website}</a><br /></>}
+            </td>
+          </tr>
+        </tbody>
       </table>
-    `
+    )
+  }
+
+  const getTemplateHTML = () => {
+    const container = document.createElement('div')
+    container.innerHTML = document.getElementById('preview-box')?.innerHTML || ''
+    return container.innerHTML
   }
 
   const copyToClipboard = () => {
@@ -207,7 +213,9 @@ export default function Home() {
         </div>
 
         <div className="flex-1 bg-white border rounded p-4 flex flex-col justify-between" style={{ height: '420px' }}>
-          <div key={htmlKey} ref={previewRef} dangerouslySetInnerHTML={{ __html: getTemplateHTML() }} className="flex-1 overflow-auto" />
+          <div id="preview-box" ref={previewRef} className="flex-1 overflow-auto">
+            <SignaturePreview />
+          </div>
           <div className="flex justify-between items-center flex-wrap gap-2 mt-4 pt-4 border-t">
             <button onClick={copyToClipboard} className="px-3 py-2 bg-black text-white rounded hover:bg-gray-800 transition">Copy HTML</button>
             <button onClick={downloadHTML} className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Download HTML</button>

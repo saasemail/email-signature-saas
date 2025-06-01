@@ -2,7 +2,7 @@
 import { useState, useRef } from 'react'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
-import { QRCodeCanvas } from 'qrcode.react'
+import QRCode from 'react-qr-code'
 
 export default function Home() {
   const previewRef = useRef(null)
@@ -181,7 +181,9 @@ export default function Home() {
           {form.website && (
             <div className="mt-4">
               <label className="block text-sm mb-1">QR Code for Website</label>
-              <QRCodeCanvas value={form.website} size={120} bgColor="#ffffff" fgColor="#000000" level="H" includeMargin={true} />
+              <div className="bg-white p-2 rounded border inline-block">
+                <QRCode value={form.website} size={128} bgColor="#ffffff" fgColor="#000000" />
+              </div>
             </div>
           )}
         </div>
